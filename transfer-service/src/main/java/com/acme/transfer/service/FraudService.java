@@ -6,11 +6,9 @@ import com.acme.transfer.config.AcmeProperties;
 import com.acme.transfer.dto.TransferRequest;
 import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class FraudService {
@@ -25,11 +23,7 @@ public class FraudService {
     }
     return fraudClient.assess(transferId, amount.toPlainString(), request.currency(),
             request.sourceAccount(), request.destinationAccount())
-        .map(FraudDecision::decision)
-        .onErrorResume(e -> {
-          log.warn("Fraud check failed for transfer {}, continuing", transferId, e);
-          return Mono.just("ALLOW");
-        });
+        .map(FraudDecision::decision);
   }
 
   private BigDecimal threshold(String currency) {

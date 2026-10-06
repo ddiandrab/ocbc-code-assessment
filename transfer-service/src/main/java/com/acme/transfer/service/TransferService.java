@@ -72,9 +72,14 @@ public class TransferService {
     }
     return fxService.convert(amount, source.currency(), destination.currency())
         .flatMap(conversion -> fraudService.check(transferId, request, amount)
+            .onErrorResume(error -> {
+              log.warn("Fraud check failed for transfer {}, failing closed", transferId, error);
+              return Mono.just("UNAVAILABLE");
+            })
             .flatMap(decision -> switch (decision) {
               case "DENY" -> save(transferId, request, amount, conversion, "REJECTED", "FRAUD_DENIED", null);
               case "REVIEW" -> save(transferId, request, amount, conversion, "PENDING_REVIEW", "FRAUD_REVIEW", null);
+              case "UNAVAILABLE" -> save(transferId, request, amount, conversion, "FAILED", "FRAUD_UNAVAILABLE", null);
               default -> post(transferId, request, amount, conversion);
             }));
   }
