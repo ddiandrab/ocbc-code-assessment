@@ -46,8 +46,14 @@ public class TransferController {
       return transferService.createTransfer(request).map(this::toResponse);
     }
     return idempotencyService.findExisting(idempotencyKey)
-        .map(existing -> ResponseEntity.status(existing.responseStatus())
-            .body((Object) idempotencyService.readResponse(existing)))
+        .flatMap(existing -> {
+          if (!existing.requestHash().equals(idempotencyService.requestHash(request))) {
+            return Mono.error(new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                "IDEMPOTENCY_KEY_REUSED"));
+          }
+          return Mono.just(ResponseEntity.status(existing.responseStatus())
+              .body((Object) idempotencyService.readResponse(existing)));
+        })
         .switchIfEmpty(Mono.defer(() -> transferService.createTransfer(request)
             .map(this::toResponse)
             .flatMap(response -> idempotencyService.save(idempotencyKey, request,
