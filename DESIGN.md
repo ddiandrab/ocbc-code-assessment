@@ -82,11 +82,17 @@ At three replicas, the in-memory semaphore allows up to 30 core calls rather tha
 
 With another week, I would prioritize global/DB-backed concurrency and idempotency, explicit dependency timeouts and retry filters, then implement batch/events and validate under the required Docker limits.
 
-## 13. AI
+## 13. Learning
+
+- Project Reactor: Learned how Mono and Flux work, how to use fromCallable and subscribeOn for blocking calls, and how retries differ from timeout error handling.
+- Troubleshooting: Practiced diagnosing test failures and logs, fixing issues with asynchronous tests, and verifying transfer, retry, and reconciliation behavior.
+- Docker: Learned how to configure service URLs, health checks, and dependencies in Docker Compose, and how to use a multi-stage build with a non-root user. Also ran a smoke test and checked endpoint idempotency.
+
+## 14. AI
 
 I used an AI assistant to clarify requirements, review and edit code and tests, explain Reactor, virtual threads and reconciliation, troubleshoot test results, and draft this document. I reviewed the changes and verified the Maven suite; the Docker smoke test was run separately.
 
-## 14. Testing
+## 15. Testing
 
 Current regression tests include `TransferServiceTest` for the successful and core-timeout paths, and `ReconciliationJobTest` for posted, rejected, empty inquiry, and no-pending-transfer cases. They use Reactor publishers and Mockito verification; the reconciliation work is asynchronous and should be awaited through completion signals rather than arbitrary sleeps.
 
